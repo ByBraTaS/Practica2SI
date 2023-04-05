@@ -1,5 +1,6 @@
 import flask as fl
 import pandas as pd
+import requests
 import sqlite3
 import json
 
@@ -48,6 +49,14 @@ def flask():
                 <input type="text" id="topDevices" name="topDevices">
                 <button type="submit">Ver</button>
             </form>
+            <h2>Top X dispositivos peligrosos:</h2>
+            <form action="dangerDev" method="POST">
+                <label for="nombre">Ingresa tu número:</label>
+                <input type="text" id="dangerDev" name="dangerDev">
+                <button type="submit">Ver</button>
+            </form>
+            <h2>Últimas 10 vulnerabilidades:</h2>
+            <a href="/last10cve" class="button"> Ver</a>
         '''
 
     @app.route('/topIPs', methods=['POST'])
@@ -82,10 +91,40 @@ def flask():
         con.commit()
         return html
 
+    @app.route('/dangerDev', methods=['POST'])
+    def dangerDev():
+        con = sqlite3.connect("database.db")
+        cur=con.cursor()
+        devices = int(fl.request.form['dangerDev'])
+        cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 0.33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
+        rows = cur.fetchall()
+        html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
+        html += '<ul>'
+        for row in rows:
+            html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+        html += '</ul>'
+        html += '<a href="/" class="button"> Volver</a>'
+        con.commit()
+        return html
+
+    @app.route('/last10cve', methods=['POST','GET'])
+    def last10cve():
+        url = "https://cve.circl.lu/api/last"
+        response = requests.get(url)
+        data = response.json()[:10]
+        html = f'<h1>Últimas 10 vulnerabilidades</h1>'
+        html += '<ul>'
+        for row in data:
+            html += f'<li>{row}</li>'
+        html += '</ul>'
+        html += '<a href="/" class="button"> Volver</a>'
+        return html
+
     if __name__ == '__main__':
         app.run(debug=True)
 
 
-#createBase(con)
+createBase()
 flask()
+
 
