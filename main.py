@@ -71,7 +71,7 @@ def flask():
         con = sqlite3.connect("database.db")
         cur=con.cursor()
         devices = int(fl.request.form['topDevices'])
-        cur.execute("SELECT id,SUM(servicios_inseguros + vulnerabilidades_detectadas) FROM devices GROUP BY id LIMIT {}".format(devices))
+        cur.execute("SELECT id,SUM(servicios_inseguros + vulnerabilidades_detectadas) as inseguros FROM devices GROUP BY id ORDER BY inseguros DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
         html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
         html += '<ul>'
