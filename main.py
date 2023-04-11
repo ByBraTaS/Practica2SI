@@ -53,7 +53,9 @@ def flask():
             <h2>Top X dispositivos peligrosos:</h2>
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="dangerDev" name="dangerDev" value="0">
+                <input type="number" id="dangerDev" name="dangerDev" value="0"><br>
+                <input type="checkbox" id="dangerCheck"> mostrar información de dispositivios peligrosos<br>
+                <input type="checkbox" id="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
                 <button type="submit">Ver</button>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
@@ -93,7 +95,7 @@ def flask():
             devices = 0
         cur.execute("SELECT id,SUM(servicios_inseguros + vulnerabilidades_detectadas) as inseguros FROM devices GROUP BY id ORDER BY inseguros DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
-        html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
+        html = f'<h1>Top {devices} de dispositivos peligrosos:</h1>'
         html += '<ul>'
         for row in rows:
             html += f'<li>{row[0]} ({row[1]} servicios inseguros)</li>'
