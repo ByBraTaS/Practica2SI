@@ -59,8 +59,8 @@ def flask():
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
                 <input type="number" id="dangerDev" name="dangerDev" value="0"><br>
-                <input type="checkbox" id="dangerCheck"> mostrar información de dispositivios peligrosos<br>
-                <input type="checkbox" id="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
+                <input type="checkbox" id="dangerCheck" name="dangerCheck"> mostrar información de dispositivios peligrosos<br>
+                <input type="checkbox" id="noDangerCheck" name="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
                 <button type="submit">Ver</button>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
@@ -119,6 +119,17 @@ def flask():
                 devices = 0
         else:
             devices = 0
+
+        if fl.request.form.get('dangerCheck'):
+            dangerInfo=True
+        else:
+            dangerInfo=False
+
+        if fl.request.form.get('noDangerCheck'):
+            noDangerInfo=True
+        else:
+            noDangerInfo=False
+
         cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
         html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
@@ -126,6 +137,7 @@ def flask():
         for row in rows:
             html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
         html += '</ul>'
+
         html += '<a href="/" class="button"> Volver</a>'
         con.commit()
         return html
