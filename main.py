@@ -41,19 +41,19 @@ def flask():
             <h2>Top X de IPs de origen más problemáticas:</h2>
             <form action="topIPs" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="text" id="topIPs" name="topIPs">
+                <input type="number" id="topIPs" name="topIPs" value="0">
                 <button type="submit">Ver</button>
             </form>
             <h2>Top X de dispositivos más vulnerables:</h2>
             <form action="topDevices" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="text" id="topDevices" name="topDevices">
+                <input type="number" id="topDevices" name="topDevices" value="0">
                 <button type="submit">Ver</button>
             </form>
             <h2>Top X dispositivos peligrosos:</h2>
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="text" id="dangerDev" name="dangerDev">
+                <input type="number" id="dangerDev" name="dangerDev" value="0">
                 <button type="submit">Ver</button>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
@@ -64,7 +64,12 @@ def flask():
     def topIPs():
         con = sqlite3.connect("database.db")
         cur=con.cursor()
-        ips = int(fl.request.form['topIPs'])
+        if fl.request.form['topIPs'].strip():
+            ips = int(fl.request.form['topIPs'])
+            if ips < 0:
+                ips = 0
+        else:
+            ips = 0
         cur.execute("SELECT origen, COUNT(*) as num_alertas FROM alerts WHERE prioridad = 1 GROUP BY origen ORDER BY num_alertas DESC LIMIT {}".format(ips))
         rows = cur.fetchall()
         html = f'<h1>Top {ips} de IPs de origen más problemáticas:</h1>'
@@ -80,7 +85,12 @@ def flask():
     def topDevices():
         con = sqlite3.connect("database.db")
         cur=con.cursor()
-        devices = int(fl.request.form['topDevices'])
+        if fl.request.form['topDevices'].strip():
+            devices = int(fl.request.form['topDevices'])
+            if devices < 0:
+                devices = 0
+        else:
+            devices = 0
         cur.execute("SELECT id,SUM(servicios_inseguros + vulnerabilidades_detectadas) as inseguros FROM devices GROUP BY id ORDER BY inseguros DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
         html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
@@ -96,8 +106,13 @@ def flask():
     def dangerDev():
         con = sqlite3.connect("database.db")
         cur=con.cursor()
-        devices = int(fl.request.form['dangerDev'])
-        cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 0.33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
+        if fl.request.form['dangerDev'].strip():
+            devices = int(fl.request.form['dangerDev'])
+            if devices < 0:
+                devices = 0
+        else:
+            devices = 0
+        cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
         html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
         html += '<ul>'
