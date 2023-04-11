@@ -46,25 +46,25 @@ def flask():
             <h2>Top X de IPs de origen más problemáticas:</h2>
             <form action="topIPs" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topIPs" name="topIPs" value="0">
-                <button type="submit">Ver</button>
+                <input type="number" id="topIPs" name="topIPs" value="0"><br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Top X de dispositivos más vulnerables:</h2>
             <form action="topDevices" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topDevices" name="topDevices" value="0">
-                <button type="submit">Ver</button>
+                <input type="number" id="topDevices" name="topDevices" value="0"><br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Top X dispositivos peligrosos:</h2>
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
                 <input type="number" id="dangerDev" name="dangerDev" value="0"><br>
-                <input type="checkbox" id="dangerCheck" name="dangerCheck"> mostrar información de dispositivios peligrosos<br>
-                <input type="checkbox" id="noDangerCheck" name="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
-                <button type="submit">Ver</button>
+                <input type="checkbox" id="dangerCheck" name="dangerCheck" value="True"> mostrar información de dispositivios peligrosos<br>
+                <input type="checkbox" id="noDangerCheck" name="noDangerCheck" value="True"> mostrar información de dispositivios no peligrosos<br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
-            <a href="/last10cve" class="button"> Ver</a>
+            <button> <a href="/last10cve"> Ver</a></button><br>
         '''
 
     @app.route('/topIPs', methods=['POST'])
@@ -84,7 +84,7 @@ def flask():
         for row in rows:
             html += f'<li>{row[0]} ({row[1]} alertas)</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -105,7 +105,7 @@ def flask():
         for row in rows:
             html += f'<li>{row[0]} ({row[1]} servicios inseguros)</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -120,25 +120,33 @@ def flask():
         else:
             devices = 0
 
-        if fl.request.form.get('dangerCheck'):
-            dangerInfo=True
-        else:
-            dangerInfo=False
-
-        if fl.request.form.get('noDangerCheck'):
-            noDangerInfo=True
-        else:
-            noDangerInfo=False
-
         cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
-        html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
+        html = f'<h1>Top {devices} de dispositivos más peligrosos:</h1>'
         html += '<ul>'
         for row in rows:
             html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
         html += '</ul>'
 
-        html += '<a href="/" class="button"> Volver</a>'
+        if 'dangerCheck' in fl.request.form and fl.request.form['dangerCheck'].strip():
+            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC")
+            rows = cur.fetchall()
+            html += f'<h2>Información de dispositivos peligrosos:</h2>'
+            html += '<ul>'
+            for row in rows:
+                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+            html += '</ul>'
+
+        if 'noDangerCheck' in fl.request.form and fl.request.form['noDangerCheck'].strip():
+            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE div <= 33 OR div IS NULL GROUP BY id ORDER BY div DESC")
+            rows = cur.fetchall()
+            html += f'<h2>Información de dispositivos no peligrosos:</h2>'
+            html += '<ul>'
+            for row in rows:
+                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+            html += '</ul>'
+
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -150,9 +158,9 @@ def flask():
         html = f'<h1>Últimas 10 vulnerabilidades</h1>'
         html += '<ul>'
         for row in data:
-            html += f'<li>{row}</li>'
+            html += f'<li>Modified:{row["Modified"]},Published:{row["Published"]},Id:{row["id"]}</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
         return html
 
     if __name__ == '__main__':
