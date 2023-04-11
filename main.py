@@ -18,7 +18,8 @@ def createBase():
     #tables
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, ip TEXT, localizacion TEXT, responsable_id TEXT, puertos_abiertos TEXT, no_puertos_abiertos INTEGER, servicios INTEGER, servicios_inseguros INTEGER, vulnerabilidades_detectadas INTEGER)")
-    cur.execute("CREATE TABLE IF NOT EXISTS responsable (nombre TEXT PRIMARY KEY, telefono TEXT, rol TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS responsable (nombre TEXT, telefono TEXT, rol TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS users (name TEXT PRIMARY KEY, password TEXT)")
 
     for d in devices:
         responsable = d['responsable']
@@ -29,6 +30,10 @@ def createBase():
         else:
             ports = len(analisis["puertos_abiertos"])
         cur.execute("INSERT OR IGNORE INTO devices (id, ip, localizacion, responsable_id, puertos_abiertos, no_puertos_abiertos, servicios, servicios_inseguros, vulnerabilidades_detectadas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (d['id'], d['ip'], d['localizacion'], responsable['nombre'], json.dumps(analisis['puertos_abiertos']), ports, analisis['servicios'], analisis['servicios_inseguros'], analisis['vulnerabilidades_detectadas']))
+        cur.execute("INSERT OR IGNORE INTO users (name, password) VALUES (?, ?)", (d['id'], d['id']))
+
+
+
     con.commit()
 
 def flask():
