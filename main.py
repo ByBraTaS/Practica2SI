@@ -46,25 +46,35 @@ def flask():
             <h2>Top X de IPs de origen más problemáticas:</h2>
             <form action="topIPs" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topIPs" name="topIPs" value="0"><br>
+                <input type="number" id="topIPs" name="topIPs"><br>
                 <button type="submit">Ver</button><br>
             </form>
             <h2>Top X de dispositivos más vulnerables:</h2>
             <form action="topDevices" method="POST">
-                <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topDevices" name="topDevices" value="0"><br>
+                <label>Ingresa tu número:</label>
+                <input type="number" id="topDevices" name="topDevices"><br>
                 <button type="submit">Ver</button><br>
             </form>
             <h2>Top X dispositivos peligrosos:</h2>
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="dangerDev" name="dangerDev" value="0"><br>
-                <input type="checkbox" id="dangerCheck" name="dangerCheck" value="True"> mostrar información de dispositivios peligrosos<br>
-                <input type="checkbox" id="noDangerCheck" name="noDangerCheck" value="True"> mostrar información de dispositivios no peligrosos<br>
+                <input type="number" id="dangerDev" name="dangerDev"><br>
+                <input type="checkbox" id="dangerCheck" name="dangerCheck"> mostrar información de dispositivios peligrosos<br>
+                <input type="checkbox" id="noDangerCheck" name="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
                 <button type="submit">Ver</button><br>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
             <button> <a href="/last10cve"> Ver</a></button><br>
+            
+            </form>
+            <h2>Zona usuarios:</h2>
+            <form action="login" method="POST">
+                <label>Usuario:</label>
+                <input type="text" id="userName" name="userName"><br>
+                <label>Contraseña:</label>
+                <input type="text" id="userPass" name="userName"><br>
+                <button type="submit">Ver</button><br>
+            </form>
         '''
 
     @app.route('/topIPs', methods=['POST'])
@@ -161,6 +171,36 @@ def flask():
             html += f'<li>Modified:{row["Modified"]},Published:{row["Published"]},Id:{row["id"]}</li>'
         html += '</ul>'
         html += '<button> <a href="/"> Volver</a></button>'
+        return html
+
+    @app.route('/login', methods=['POST'])
+    def login():
+        con = sqlite3.connect("database.db")
+        cur = con.cursor()
+        html = f'<h1>Información de usuario:</h1>'
+        if fl.request.form['userName'].strip():
+            user = fl.request.form['userName']
+        else:
+            html += f'<p>El usuario o contraseña son incorrectos</p>'
+            user = "None"
+        cur.execute("SELECT * FROM devices WHERE id='{}'".format(user))
+        rows = cur.fetchall()
+        html += '<ul>'
+        for row in rows:
+            html += f'''
+                <li>Usuario: {row[0]}</li><br>
+                <li>Ip: {row[1]}</li><br>
+                <li>Localización: {row[2]}</li><br>
+                <li>Responsable: {row[3]}</li><br>
+                <li>Número de puertos abiertos: {row[5]}</li><br>
+                <li>Puertos abiertos: {row[4]}</li><br>
+                <li>Número de servicios: {row[6]}</li><br>
+                <li>Número de servicios inseguros: {row[7]}</li><br>
+                <li>Número de vulnerabilidades: {row[8]}</li><br>
+            '''
+        html += '</ul>'
+        html += '<button> <a href="/"> Volver</a></button>'
+        con.commit()
         return html
 
     if __name__ == '__main__':
