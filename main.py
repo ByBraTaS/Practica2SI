@@ -168,7 +168,7 @@ def flask():
         html = f'<h1>Últimas 10 vulnerabilidades</h1>'
         html += '<ul>'
         for row in data:
-            html += f'<li>Modified:{row["Modified"]},Published:{row["Published"]},Id:{row["id"]}</li>'
+            html += f'<li>Id: {row["id"]}, Modified: {row["Modified"]}, Published: {row["Published"]}, Summary: {row["summary"]}</li>'
         html += '</ul>'
         html += '<button> <a href="/"> Volver</a></button>'
         return html
