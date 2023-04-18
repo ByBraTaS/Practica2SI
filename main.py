@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import sqlite3
 import json
+import hashlib
 
 def createBase():
     con = sqlite3.connect("database.db")
@@ -30,7 +31,11 @@ def createBase():
         else:
             ports = len(analisis["puertos_abiertos"])
         cur.execute("INSERT OR IGNORE INTO devices (id, ip, localizacion, responsable_id, puertos_abiertos, no_puertos_abiertos, servicios, servicios_inseguros, vulnerabilidades_detectadas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (d['id'], d['ip'], d['localizacion'], responsable['nombre'], json.dumps(analisis['puertos_abiertos']), ports, analisis['servicios'], analisis['servicios_inseguros'], analisis['vulnerabilidades_detectadas']))
-        cur.execute("INSERT OR IGNORE INTO users (name, password) VALUES (?, ?)", (d['id'], d['id']))
+        password = d['id'].encode('utf-8')
+        hash_object = hashlib.sha256()
+        hash_object.update(password)
+        hashed_pass = hash_object.hexdigest()
+        cur.execute("INSERT OR IGNORE INTO users (name, password) VALUES (?, ?)", (d['id'], hashed_pass))
 
 
 
@@ -72,7 +77,7 @@ def flask():
                 <label>Usuario:</label>
                 <input type="text" id="userName" name="userName"><br>
                 <label>Contraseña:</label>
-                <input type="text" id="userPass" name="userName"><br>
+                <input type="password" id="userPass" name="userPass"><br>
                 <button type="submit">Ver</button><br>
             </form>
         '''
@@ -178,30 +183,46 @@ def flask():
         con = sqlite3.connect("database.db")
         cur = con.cursor()
         html = f'<h1>Información de usuario:</h1>'
-        if fl.request.form['userName'].strip():
+        if fl.request.form['userName'].strip() and fl.request.form['userPass']:
             user = fl.request.form['userName']
+            password = fl.request.form['userPass']
         else:
             html += f'<p>El usuario o contraseña son incorrectos</p>'
             user = "None"
-        cur.execute("SELECT * FROM devices WHERE id='{}'".format(user))
-        rows = cur.fetchall()
-        html += '<ul>'
-        for row in rows:
-            html += f'''
-                <li>Usuario: {row[0]}</li><br>
-                <li>Ip: {row[1]}</li><br>
-                <li>Localización: {row[2]}</li><br>
-                <li>Responsable: {row[3]}</li><br>
-                <li>Número de puertos abiertos: {row[5]}</li><br>
-                <li>Puertos abiertos: {row[4]}</li><br>
-                <li>Número de servicios: {row[6]}</li><br>
-                <li>Número de servicios inseguros: {row[7]}</li><br>
-                <li>Número de vulnerabilidades: {row[8]}</li><br>
-            '''
-        html += '</ul>'
-        html += '<button> <a href="/"> Volver</a></button>'
-        con.commit()
+
+        cur.execute("SELECT password FROM users WHERE name = ?", (user,))
+        row = cur.fetchone()
+        check = row[0]
+
+        hash_object = hashlib.sha256()
+        hash_object.update(password.encode('utf-8'))
+        hashed_input_password = hash_object.hexdigest()
+
+        if check == hashed_input_password:
+            cur.execute("SELECT * FROM devices WHERE id='{}'".format(user))
+            rows = cur.fetchall()
+            html += '<ul>'
+            for row in rows:
+                html += f'''
+                            <li>Usuario: {row[0]}</li><br>
+                            <li>Ip: {row[1]}</li><br>
+                            <li>Localización: {row[2]}</li><br>
+                            <li>Responsable: {row[3]}</li><br>
+                            <li>Número de puertos abiertos: {row[5]}</li><br>
+                            <li>Puertos abiertos: {row[4]}</li><br>
+                            <li>Número de servicios: {row[6]}</li><br>
+                            <li>Número de servicios inseguros: {row[7]}</li><br>
+                            <li>Número de vulnerabilidades: {row[8]}</li><br>
+                        '''
+            html += '</ul>'
+            html += '<button> <a href="/"> Volver</a></button>'
+            con.commit()
+            return html
+        else:
+            html += f'<p>El usuario o contraseña son incorrectos</p>'
+
         return html
+
 
     if __name__ == '__main__':
         app.run(debug=True)
