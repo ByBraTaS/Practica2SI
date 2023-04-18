@@ -46,25 +46,35 @@ def flask():
             <h2>Top X de IPs de origen más problemáticas:</h2>
             <form action="topIPs" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topIPs" name="topIPs" value="0">
-                <button type="submit">Ver</button>
+                <input type="number" id="topIPs" name="topIPs"><br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Top X de dispositivos más vulnerables:</h2>
             <form action="topDevices" method="POST">
-                <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topDevices" name="topDevices" value="0">
-                <button type="submit">Ver</button>
+                <label>Ingresa tu número:</label>
+                <input type="number" id="topDevices" name="topDevices"><br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Top X dispositivos peligrosos:</h2>
             <form action="dangerDev" method="POST">
                 <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="dangerDev" name="dangerDev" value="0"><br>
-                <input type="checkbox" id="dangerCheck"> mostrar información de dispositivios peligrosos<br>
-                <input type="checkbox" id="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
-                <button type="submit">Ver</button>
+                <input type="number" id="dangerDev" name="dangerDev"><br>
+                <input type="checkbox" id="dangerCheck" name="dangerCheck"> mostrar información de dispositivios peligrosos<br>
+                <input type="checkbox" id="noDangerCheck" name="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
+                <button type="submit">Ver</button><br>
             </form>
             <h2>Últimas 10 vulnerabilidades:</h2>
-            <a href="/last10cve" class="button"> Ver</a>
+            <button> <a href="/last10cve"> Ver</a></button><br>
+            
+            </form>
+            <h2>Zona usuarios:</h2>
+            <form action="login" method="POST">
+                <label>Usuario:</label>
+                <input type="text" id="userName" name="userName"><br>
+                <label>Contraseña:</label>
+                <input type="text" id="userPass" name="userName"><br>
+                <button type="submit">Ver</button><br>
+            </form>
         '''
 
     @app.route('/topIPs', methods=['POST'])
@@ -84,7 +94,7 @@ def flask():
         for row in rows:
             html += f'<li>{row[0]} ({row[1]} alertas)</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -105,7 +115,7 @@ def flask():
         for row in rows:
             html += f'<li>{row[0]} ({row[1]} servicios inseguros)</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -119,14 +129,34 @@ def flask():
                 devices = 0
         else:
             devices = 0
+
         cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
-        html = f'<h1>Top {devices} de dispositivos más vulnerables:</h1>'
+        html = f'<h1>Top {devices} de dispositivos más peligrosos:</h1>'
         html += '<ul>'
         for row in rows:
             html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+
+        if 'dangerCheck' in fl.request.form and fl.request.form['dangerCheck'].strip():
+            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC")
+            rows = cur.fetchall()
+            html += f'<h2>Información de dispositivos peligrosos:</h2>'
+            html += '<ul>'
+            for row in rows:
+                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+            html += '</ul>'
+
+        if 'noDangerCheck' in fl.request.form and fl.request.form['noDangerCheck'].strip():
+            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE div <= 33 OR div IS NULL GROUP BY id ORDER BY div DESC")
+            rows = cur.fetchall()
+            html += f'<h2>Información de dispositivos no peligrosos:</h2>'
+            html += '<ul>'
+            for row in rows:
+                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+            html += '</ul>'
+
+        html += '<button> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -138,9 +168,39 @@ def flask():
         html = f'<h1>Últimas 10 vulnerabilidades</h1>'
         html += '<ul>'
         for row in data:
-            html += f'<li>{row}</li>'
+            html += f'<li>Modified:{row["Modified"]},Published:{row["Published"]},Id:{row["id"]}</li>'
         html += '</ul>'
-        html += '<a href="/" class="button"> Volver</a>'
+        html += '<button> <a href="/"> Volver</a></button>'
+        return html
+
+    @app.route('/login', methods=['POST'])
+    def login():
+        con = sqlite3.connect("database.db")
+        cur = con.cursor()
+        html = f'<h1>Información de usuario:</h1>'
+        if fl.request.form['userName'].strip():
+            user = fl.request.form['userName']
+        else:
+            html += f'<p>El usuario o contraseña son incorrectos</p>'
+            user = "None"
+        cur.execute("SELECT * FROM devices WHERE id='{}'".format(user))
+        rows = cur.fetchall()
+        html += '<ul>'
+        for row in rows:
+            html += f'''
+                <li>Usuario: {row[0]}</li><br>
+                <li>Ip: {row[1]}</li><br>
+                <li>Localización: {row[2]}</li><br>
+                <li>Responsable: {row[3]}</li><br>
+                <li>Número de puertos abiertos: {row[5]}</li><br>
+                <li>Puertos abiertos: {row[4]}</li><br>
+                <li>Número de servicios: {row[6]}</li><br>
+                <li>Número de servicios inseguros: {row[7]}</li><br>
+                <li>Número de vulnerabilidades: {row[8]}</li><br>
+            '''
+        html += '</ul>'
+        html += '<button> <a href="/"> Volver</a></button>'
+        con.commit()
         return html
 
     if __name__ == '__main__':
