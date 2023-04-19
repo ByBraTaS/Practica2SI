@@ -40,14 +40,16 @@ print(regr.coef_)
 
 # Make predictions using the testing set
 pred = regr.predict(xtest)
-
+predfinal = []
 contadorPeligrosos=0
 for i in pred:
     if i >=0.5:
         print(1,end=", ")
         contadorPeligrosos+=1
+        predfinal.append(1)
     else:
         print(0,end=", ")
+        predfinal.append(0)
 print()
 print("Numero esperado de dispositivos peligrosos: ",contador)
 print("Numero real de dispositivos peligrosos: ",contadorPeligrosos)
@@ -55,8 +57,8 @@ print("Numero real de dispositivos peligrosos: ",contadorPeligrosos)
 
 
 # Plot outputs
-plt.scatter(xtest, pred, color="black")
-plt.plot(xtest, ytrain, color="blue", linewidth=3)
+plt.scatter(xtest, predfinal, color="black")
+plt.plot(xtest, pred, color="blue", linewidth=3)
 plt.xticks(())
 plt.yticks(())
 plt.show()
