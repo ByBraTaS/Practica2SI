@@ -4,6 +4,7 @@ import requests
 import sqlite3
 import json
 import hashlib
+from flask import render_template
 
 def createBase():
     con = sqlite3.connect("database.db")
@@ -46,41 +47,7 @@ def flask():
 
     @app.route('/')
     def index():
-        return '''
-            <h1>Práctica 2 SI</h1>
-            <h2>Top X de IPs de origen más problemáticas:</h2>
-            <form action="topIPs" method="POST">
-                <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="topIPs" name="topIPs"><br>
-                <button type="submit">Ver</button><br>
-            </form>
-            <h2>Top X de dispositivos más vulnerables:</h2>
-            <form action="topDevices" method="POST">
-                <label>Ingresa tu número:</label>
-                <input type="number" id="topDevices" name="topDevices"><br>
-                <button type="submit">Ver</button><br>
-            </form>
-            <h2>Top X dispositivos peligrosos:</h2>
-            <form action="dangerDev" method="POST">
-                <label for="nombre">Ingresa tu número:</label>
-                <input type="number" id="dangerDev" name="dangerDev"><br>
-                <input type="checkbox" id="dangerCheck" name="dangerCheck"> mostrar información de dispositivios peligrosos<br>
-                <input type="checkbox" id="noDangerCheck" name="noDangerCheck"> mostrar información de dispositivios no peligrosos<br>
-                <button type="submit">Ver</button><br>
-            </form>
-            <h2>Últimas 10 vulnerabilidades:</h2>
-            <button> <a href="/last10cve"> Ver</a></button><br>
-            
-            </form>
-            <h2>Zona usuarios:</h2>
-            <form action="login" method="POST">
-                <label>Usuario:</label>
-                <input type="text" id="userName" name="userName"><br>
-                <label>Contraseña:</label>
-                <input type="password" id="userPass" name="userPass"><br>
-                <button type="submit">Ver</button><br>
-            </form>
-        '''
+        return render_template('Index.html')
 
     @app.route('/topIPs', methods=['POST'])
     def topIPs():
@@ -135,30 +102,30 @@ def flask():
         else:
             devices = 0
 
-        cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
+        cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
         html = f'<h1>Top {devices} de dispositivos más peligrosos:</h1>'
         html += '<ul>'
         for row in rows:
-            html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+            html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
         html += '</ul>'
 
         if 'dangerCheck' in fl.request.form and fl.request.form['dangerCheck'].strip():
-            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC")
+            cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC")
             rows = cur.fetchall()
             html += f'<h2>Información de dispositivos peligrosos:</h2>'
             html += '<ul>'
             for row in rows:
-                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+                html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
             html += '</ul>'
 
         if 'noDangerCheck' in fl.request.form and fl.request.form['noDangerCheck'].strip():
-            cur.execute("SELECT id,ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE div <= 33 OR div IS NULL GROUP BY id ORDER BY div DESC")
+            cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE div <= 33 OR div IS NULL GROUP BY id ORDER BY div DESC")
             rows = cur.fetchall()
             html += f'<h2>Información de dispositivos no peligrosos:</h2>'
             html += '<ul>'
             for row in rows:
-                html += f'<li>{row[0]} ({row[1]}% servicios inseguros)</li>'
+                html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
             html += '</ul>'
 
         html += '<button> <a href="/"> Volver</a></button>'
