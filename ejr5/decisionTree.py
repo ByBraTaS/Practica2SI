@@ -30,7 +30,7 @@ for d in test:
     ytest.append([d['peligroso']])
 
 ### Creamos el modelo de árbol de decisión ###
-clf = tree.DecisionTreeClassifier()
+clf = tree.DecisionTreeClassifier(max_depth=1)
 
 ### Entrenamos el modelo con los datos de train ###
 clf.fit(xtrain, ytrain)
@@ -38,20 +38,24 @@ clf.fit(xtrain, ytrain)
 ### Creamos una predicción utilizando los datos de test ###
 print("DECISION TREE")
 ypred = (clf.predict(xtest))
-print("Error en los datos: %.2f" % mean_squared_error(ytest,ypred))
 
 contadorPeligrosos=0
 for i in ypred:
     if i >=0.5:
         contadorPeligrosos+=1
+
+contadorReales = ytest.count([1])
+
 print("Numero de dispositivos peligrosos: ",contadorPeligrosos)
+print("Numero de dispositivos reales: ", contadorReales)
+error = round(abs((contadorPeligrosos / contadorReales) - 1) * 100, 2)
+print("Error en los datos: ", error, "%")
 
 ### Mostramos el árbol de decisión ###
 dot_data = tree.export_graphviz(clf, out_file=None,
                        feature_names=['porcentage'],
                       class_names=['noPeligroso','peligroso'],
                      filled=True, rounded=True,
-                    max_depth=1,
                     special_characters=True)
 graph = graphviz.Source(dot_data)
 graph.render('test.gv', view=True).replace('\\', '/')

@@ -38,14 +38,19 @@ regr.fit(xtrain,ytrain)
 
 ### Creamos una predicción utilizando los datos de test ###
 ypred = regr.predict(xtest)
-print("Error en los datos: %.2f" % mean_squared_error(ytest,ypred))
+
 
 contadorPeligrosos=0
 for i in ypred:
     if i >=0.5:
         contadorPeligrosos+=1
 
+contadorReales = ytest.count([1])
+
 print("Numero de dispositivos peligrosos: ",contadorPeligrosos)
+print("Numero de dispositivos reales: ", contadorReales)
+error = round(abs((contadorPeligrosos / contadorReales) - 1) * 100, 2)
+print("Error en los datos: ", error, "%")
 
 ### Mostramos la regresión lineal de la predicción ###
 plt.scatter(xtest, ytest, color="black")
