@@ -61,12 +61,15 @@ def flask():
             ips = 0
         cur.execute("SELECT origen, COUNT(*) as num_alertas FROM alerts WHERE prioridad = 1 GROUP BY origen ORDER BY num_alertas DESC LIMIT {}".format(ips))
         rows = cur.fetchall()
-        html = f'<h1>Top {ips} de IPs de origen más problemáticas:</h1>'
-        html += '<ul>'
+        html = f'<h1 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Top {ips} de IPs de origen más problemáticas:</h1>'
+        html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
+
         for row in rows:
-            html += f'<li>{row[0]} ({row[1]} alertas)</li>'
+            html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">{row[0]} ({row[1]} servicios inseguros)</li>'
+
         html += '</ul>'
-        html += '<button> <a href="/"> Volver</a></button>'
+        html += '<button style="background-color: #006699; color: #fff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/" style="color: #fff; text-decoration: none;">Volver</a></button>'
+
         con.commit()
         return html
 
@@ -82,12 +85,12 @@ def flask():
             devices = 0
         cur.execute("SELECT id,SUM(servicios_inseguros + vulnerabilidades_detectadas) as inseguros FROM devices GROUP BY id ORDER BY inseguros DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
-        html = f'<h1>Top {devices} de dispositivos peligrosos:</h1>'
-        html += '<ul>'
+        html = f'<h1 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Top {devices} de dispositivos peligrosos:</h1>'
+        html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
         for row in rows:
-            html += f'<li>{row[0]} ({row[1]} servicios inseguros)</li>'
+            html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">{row[0]} ({row[1]} servicios inseguros)</li>'
         html += '</ul>'
-        html += '<button> <a href="/"> Volver</a></button>'
+        html += '<button style="background-color: #006699; color: #ffffff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -104,31 +107,31 @@ def flask():
 
         cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC LIMIT {}".format(devices))
         rows = cur.fetchall()
-        html = f'<h1>Top {devices} de dispositivos más peligrosos:</h1>'
-        html += '<ul>'
+        html = f'<h1 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Top {devices} de dispositivos más peligrosos:</h1>'
+        html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
         for row in rows:
-            html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
+            html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]} / RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
         html += '</ul>'
 
         if 'dangerCheck' in fl.request.form and fl.request.form['dangerCheck'].strip():
             cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE servicios > 0 and div > 33 GROUP BY id ORDER BY div DESC")
             rows = cur.fetchall()
-            html += f'<h2>Información de dispositivos peligrosos:</h2>'
-            html += '<ul>'
+            html += f'<h2 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Información de dispositivos peligrosos:</h2>'
+            html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
             for row in rows:
-                html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
+                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
             html += '</ul>'
 
         if 'noDangerCheck' in fl.request.form and fl.request.form['noDangerCheck'].strip():
             cur.execute("SELECT id, ip, responsable_id, ROUND(CAST(servicios_inseguros AS FLOAT) / servicios * 100, 2) as div FROM devices WHERE div <= 33 OR div IS NULL GROUP BY id ORDER BY div DESC")
             rows = cur.fetchall()
-            html += f'<h2>Información de dispositivos no peligrosos:</h2>'
-            html += '<ul>'
+            html += f'<h2 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Información de dispositivos no peligrosos:</h2>'
+            html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
             for row in rows:
-                html += f'<li>{row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]}/ ({row[3]}% servicios inseguros)</li>'
+                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]} / IP: {row[1]} / RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
             html += '</ul>'
 
-        html += '<button> <a href="/"> Volver</a></button>'
+        html += '<button style="background-color: #006699; color: #ffffff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/"> Volver</a></button>'
         con.commit()
         return html
 
@@ -137,13 +140,26 @@ def flask():
         url = "https://cve.circl.lu/api/last"
         response = requests.get(url)
         data = response.json()[:10]
-        html = f'<h1>Últimas 10 vulnerabilidades</h1>'
-        html += '<ul>'
+        html = '<h1 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Últimas 10 vulnerabilidades</h1>'
+        html += '<table border="2" cellpadding="10">'
+        html += '<tr><th>Modified</th><th>Published</th><th>Id</th><th>Summary</th></tr>'
         for row in data:
-            html += f'<li>Modified:{row["Modified"]},Published:{row["Published"]},Id:{row["id"]}</li>'
-        html += '</ul>'
-        html += '<button> <a href="/"> Volver</a></button>'
+            html += f'<tr><td>{row["Modified"]}</td><td>{row["Published"]}</td><td>{row["id"]}</td><td>{row["summary"]}</td></tr>'
+        html += '</table>'
+        html += '<button style="background-color: #006699; color: #ffffff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/"> Volver</a></button>'
         return html
+
+    # def last10cve():
+    #     url = "https://cve.circl.lu/api/last"
+    #     response = requests.get(url)
+    #     data = response.json()[:10]
+    #     html = f'<h1 >Últimas 10 vulnerabilidades</h1>'
+    #     html += '<ul>'
+    #     for row in data:
+    #         html += f'<li>Modified:{row["Modified"]}, Published:{row["Published"]}, Id:{row["id"]}</li>'
+    #     html += '</ul>'
+    #     html += '<button> <a href="/"> Volver</a></button>'
+    #     return html
 
     @app.route('/login', methods=['POST'])
     def login():
@@ -168,21 +184,21 @@ def flask():
         if check == hashed_input_password:
             cur.execute("SELECT * FROM devices WHERE id='{}'".format(user))
             rows = cur.fetchall()
-            html += '<ul>'
+            html += '<ul style="list-style: none; padding: 0; margin: 0;">'
             for row in rows:
                 html += f'''
-                            <li>Usuario: {row[0]}</li><br>
-                            <li>Ip: {row[1]}</li><br>
-                            <li>Localización: {row[2]}</li><br>
-                            <li>Responsable: {row[3]}</li><br>
-                            <li>Número de puertos abiertos: {row[5]}</li><br>
-                            <li>Puertos abiertos: {row[4]}</li><br>
-                            <li>Número de servicios: {row[6]}</li><br>
-                            <li>Número de servicios inseguros: {row[7]}</li><br>
-                            <li>Número de vulnerabilidades: {row[8]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Usuario: {row[0]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Ip: {row[1]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Localización: {row[2]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Responsable: {row[3]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Número de puertos abiertos: {row[5]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Puertos abiertos: {row[4]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Número de servicios: {row[6]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Número de servicios inseguros: {row[7]}</li><br>
+                            <li style="padding: 10px 0; border-bottom: 1px solid #ccc;">Número de vulnerabilidades: {row[8]}</li><br>
                         '''
             html += '</ul>'
-            html += '<button> <a href="/"> Volver</a></button>'
+            html += '<button style="background-color: #006699; color: #fff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/" style="color: #fff; text-decoration: none;"> <a href="/"> Volver</a></button>'
             con.commit()
             return html
         else:
