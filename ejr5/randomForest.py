@@ -15,7 +15,7 @@ for d in train:
         xtrain.append([d['servicios_inseguros']/d['servicios']])
     else:
         xtrain.append([0])
-    ytrain.append([d['peligroso']])
+    ytrain.append(d['peligroso'])
 
 ### Preparamos los datos de test ###
 with open('../data/devices_IA_predecir_v2.json', 'r') as f:
@@ -31,7 +31,6 @@ for d in test:
     ytest.append([d['peligroso']])
 
 ### Creamos el modelo de random forest ###
-
 frst = RandomForestClassifier(max_depth=1, random_state=0, n_estimators=10)
 
 ### Entrenamos el modelo con los datos de train ###
@@ -40,14 +39,18 @@ frst.fit(xtrain, ytrain)
 ### Creamos una predicción utilizando los datos de test ###
 print("RANDOM FOREST")
 ypred=(frst.predict(xtest))
-print("Error en los datos: %.2f" % mean_squared_error(ytest,ypred))
 
 contadorPeligrosos=0
 for i in ypred:
     if i >=0.5:
         contadorPeligrosos+=1
 
+contadorReales = ytest.count([1])
+
 print("Numero de dispositivos peligrosos: ",contadorPeligrosos)
+print("Numero de dispositivos reales: ", contadorReales)
+error = round(abs((contadorPeligrosos / contadorReales) - 1) * 100, 2)
+print("Error en los datos: ", error, "%")
 
 ### Mostramos las agrupaciones ###
 for i in range(len(frst.estimators_)):
@@ -58,3 +61,4 @@ for i in range(len(frst.estimators_)):
                     class_names=['noPeligroso', 'peligroso'],
                     precision=2, filled=True)
     call(['dot', '-Tpng', 'tree.dot', '-o', 'tree'+str(i)+'.png', '-Gdpi=600'])
+
