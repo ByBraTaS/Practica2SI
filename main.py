@@ -110,7 +110,7 @@ def flask():
         html = f'<h1 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Top {devices} de dispositivos más peligrosos:</h1>'
         html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
         for row in rows:
-            html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]} / RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
+            html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]} / RESPONSABLE: {row[2]} / SERVICIOS INSEGUROS: {row[3]}%</li>'
         html += '</ul>'
 
         if 'dangerCheck' in fl.request.form and fl.request.form['dangerCheck'].strip():
@@ -119,7 +119,7 @@ def flask():
             html += f'<h2 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Información de dispositivos peligrosos:</h2>'
             html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
             for row in rows:
-                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
+                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]}/ IP: {row[1]}/ RESPONSABLE: {row[2]} / SERVICIOS INSEGUROS: {row[3]}%</li>'
             html += '</ul>'
 
         if 'noDangerCheck' in fl.request.form and fl.request.form['noDangerCheck'].strip():
@@ -128,7 +128,7 @@ def flask():
             html += f'<h2 style="color:#006699; text-align:center; font-size:30px; font-weight:bold;">Información de dispositivos no peligrosos:</h2>'
             html += '<ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #ccc; border-radius: 5px;">'
             for row in rows:
-                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]} / IP: {row[1]} / RESPONSABLE: {row[2]} / ({row[3]}% servicios inseguros)</li>'
+                html += f'<li style="padding: 10px 0; border-bottom: 1px solid #ccc;">ID:  {row[0]} / IP: {row[1]} / RESPONSABLE: {row[2]} / SERVICIOS INSEGUROS: {row[3]}%</li>'
             html += '</ul>'
 
         html += '<button style="background-color: #006699; color: #ffffff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/"> Volver</a></button>'
@@ -148,18 +148,6 @@ def flask():
         html += '</table>'
         html += '<button style="background-color: #006699; color: #ffffff; border: none; border-radius: 3px; padding: 10px 20px; font-size: 16px; cursor: pointer;"> <a href="/"> Volver</a></button>'
         return html
-
-    # def last10cve():
-    #     url = "https://cve.circl.lu/api/last"
-    #     response = requests.get(url)
-    #     data = response.json()[:10]
-    #     html = f'<h1 >Últimas 10 vulnerabilidades</h1>'
-    #     html += '<ul>'
-    #     for row in data:
-    #         html += f'<li>Modified:{row["Modified"]}, Published:{row["Published"]}, Id:{row["id"]}</li>'
-    #     html += '</ul>'
-    #     html += '<button> <a href="/"> Volver</a></button>'
-    #     return html
 
     @app.route('/login', methods=['POST'])
     def login():
